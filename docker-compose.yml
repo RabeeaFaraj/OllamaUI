@@ -1,0 +1,42 @@
+#version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: yolo_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    # volumes:
+    #   - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  yolo:
+    image: ${YOLO_IMAGE}
+    container_name: yolo_service
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    # volumes:
+    #   - ./uploads:/app/uploads
+    ports:
+      - "${YOLO_PORT}:8080"
+
+  ollama-ui:
+    image: ${OLLAMA_UI_IMAGE}
+    container_name: ollama_ui
+    restart: always
+    depends_on:
+      - yolo
+    environment:
+      YOLO_SERVICE: yolo:${YOLO_PORT}
+    ports:
+      - "${OLLAMA_UI_PORT}:3000"
+
+# volumes:
+#   db_data:
