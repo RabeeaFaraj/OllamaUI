@@ -35,7 +35,7 @@ services:
       - yolo
     environment:
       YOLO_SERVICE: yolo:${YOLO_PORT}
-      YOLO_SERVICE_EC2: http://${{ secrets.HOST }}:${YOLO_PORT}
+      YOLO_SERVICE_EC2: http://${EC2_HOST}:${YOLO_PORT}
     ports:
       - "${OLLAMA_UI_PORT}:3000"
 
