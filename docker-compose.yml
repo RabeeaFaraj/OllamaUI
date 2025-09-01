@@ -40,7 +40,7 @@ services:
       - "${OLLAMA_UI_PORT}:3000"
 
     ollama:
-    image: ollama/ollama:latest
+    image: ${OLLAMA_UI_IMAGE}
     container_name: ollama
     restart: always
     ports:
