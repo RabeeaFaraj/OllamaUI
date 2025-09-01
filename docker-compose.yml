@@ -39,5 +39,11 @@ services:
     ports:
       - "${OLLAMA_UI_PORT}:3000"
 
+    ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
 # volumes:
 #   db_data:
