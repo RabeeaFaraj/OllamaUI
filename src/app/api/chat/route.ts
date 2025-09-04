@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       const buffer = Buffer.from(arrayBuffer); // Convert ArrayBuffer to Node.js Buffer
 
       // Generate a unique filename for the uploaded image
-      const fileKey = `uploads/${Date.now()}-image.jpg`;
+      const fileKey = `uploads/${Date.now()}-image.jpeg`;
 
       // Upload the image to S3
       await s3.send(

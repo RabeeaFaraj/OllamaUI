@@ -34,6 +34,7 @@ services:
     depends_on:
       - yolo
     environment:
+      AWS_REGION: eu-west-1
       YOLO_SERVICE: yolo:${YOLO_PORT}
       YOLO_SERVICE_EC2: http://${EC2_HOST}:${YOLO_PORT}
     ports:
