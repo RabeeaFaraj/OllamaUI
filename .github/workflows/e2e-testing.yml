@@ -58,6 +58,6 @@ jobs:
                     docker compose down
           
                     # Keep original .env but add IMAGE_TAG
-                    echo "OLLAMA_UI_IMG_TAG=${IMAGE_TAG}" >> .env
+                    echo "OLLAMA_UI_IMG_TAG=${env.IMAGE_TAG}" >> .env
           
                     docker compose up -d
