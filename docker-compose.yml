@@ -15,7 +15,7 @@ services:
       - "5432:5432"
 
   yolo:
-    image: ${YOLO_IMAGE}:${YOLO_IMAGE_TAG}
+    image: rabeeafaraj/${YOLO_IMAGE}:${YOLO_IMAGE_TAG}
     container_name: yolo_service
     restart: always
     depends_on:
@@ -28,7 +28,7 @@ services:
       - "${YOLO_PORT}:8080"
 
   ollama-ui:
-    image: ${OLLAMA_UI_IMAGE}:${OLLAMA_UI_IMG_TAG}
+    image: rabeeafaraj/${OLLAMA_UI_IMAGE}:${OLLAMA_UI_IMG_TAG}
     container_name: ollama_ui
     restart: always
     depends_on:
