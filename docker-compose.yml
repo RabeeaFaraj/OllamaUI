@@ -34,9 +34,11 @@ services:
     depends_on:
       - yolo
     environment:
-      AWS_REGION: eu-west-1
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
       YOLO_SERVICE: yolo:${YOLO_PORT}
       YOLO_SERVICE_EC2: http://${EC2_HOST}:${YOLO_PORT}
+      AWS_SDK_LOAD_CONFIG: 1
     ports:
       - "${OLLAMA_UI_PORT}:3000"
 
