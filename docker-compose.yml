@@ -15,7 +15,7 @@ services:
       - "5432:5432"
 
   yolo:
-    image: rabeeafaraj/${YOLO_IMAGE}:${YOLO_IMAGE_TAG}
+    image: rabeeafaraj/${YOLO_IMAGE}:${YOLO_IMG_TAG}
     container_name: yolo_service
     restart: always
     depends_on:

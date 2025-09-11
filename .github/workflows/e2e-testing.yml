@@ -27,7 +27,13 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    outputs:
+      YOLO_VERSION: ${{ steps.parse_env.outputs.YOLO_VERSION }}
+      YOLO_IMG_TAG: ${{ steps.parse_env.outputs.YOLO_IMG_TAG }}
+      OLLAMA_VERSION: ${{ steps.parse_env.outputs.OLLAMA_VERSION }}
+      OLLAMA_UI_IMG_TAG: ${{ steps.parse_env.outputs.OLLAMA_UI_IMG_TAG }}
+      POSTGRES_VERSION: ${{ steps.parse_env.outputs.POSTGRES_VERSION }}
+
     steps:
     - name: Get code
       uses: actions/checkout@v4
@@ -84,10 +90,57 @@ jobs:
                     echo "EC2_HOST=${{ secrets.HOST }}" >> .env
           
                     docker compose up -d
+
+    - id: parse_env
+      name: Parse env values into job outputs (local .env)
+      run: |
+        if [ ! -f .env ]; then
+          echo "Error: .env not found in repo root." >&2
+          exit 1
+        fi
+        echo "--- Contents of .env (filtered) ---"
+        grep -E '^(YOLO_VERSION|YOLO_IMG_TAG|OLLAMA_VERSION|POSTGRES_VERSION)=' .env || true
+
+        # Extract values
+        YOLO_VERSION=$(grep -E '^YOLO_VERSION=' .env | head -n1 | cut -d'=' -f2-)
+        YOLO_IMG_TAG=$(grep -E '^YOLO_IMG_TAG=' .env | head -n1 | cut -d'=' -f2-)
+        OLLAMA_VERSION=$(grep -E '^OLLAMA_VERSION=' .env | head -n1 | cut -d'=' -f2-)
+        POSTGRES_VERSION=$(grep -E '^POSTGRES_VERSION=' .env | head -n1 | cut -d'=' -f2-)
+        # Dynamic value from earlier build step
+        OLLAMA_UI_IMG_TAG="${IMAGE_TAG}"
+
+        for kv in \
+          YOLO_VERSION="$YOLO_VERSION" \
+          YOLO_IMG_TAG="$YOLO_IMG_TAG" \
+          OLLAMA_VERSION="$OLLAMA_VERSION" \
+          OLLAMA_UI_IMG_TAG="$OLLAMA_UI_IMG_TAG" \
+          POSTGRES_VERSION="$POSTGRES_VERSION"; do
+          key=${kv%%=*}; value=${kv#*=};
+          if [ -n "$value" ]; then
+            echo "$key=$value" >> $GITHUB_OUTPUT
+            echo "$key=$value" >> $GITHUB_ENV
+            echo "Exported $key=$value"
+          else
+            echo "Warning: $key empty" >&2
+          fi
+        done
+
+        echo "--- Verification echo ---"
+        echo "YOLO_VERSION=$YOLO_VERSION"
+        echo "YOLO_IMG_TAG=$YOLO_IMG_TAG"
+        echo "OLLAMA_VERSION=$OLLAMA_VERSION"
+        echo "OLLAMA_UI_IMG_TAG=$OLLAMA_UI_IMG_TAG"
+        echo "POSTGRES_VERSION=$POSTGRES_VERSION"
                     
   selenium-matrix-tests:
     runs-on: ubuntu-latest
     needs: deploy
+    env:
+      YOLO_VERSION: ${{ needs.deploy.outputs.YOLO_VERSION }}
+      YOLO_IMG_TAG: ${{ needs.deploy.outputs.YOLO_IMG_TAG }}
+      OLLAMA_VERSION: ${{ needs.deploy.outputs.OLLAMA_VERSION }}
+      OLLAMA_UI_IMG_TAG: ${{ needs.deploy.outputs.OLLAMA_UI_IMG_TAG }}
+      POSTGRES_VERSION: ${{ needs.deploy.outputs.POSTGRES_VERSION }}
     strategy:
       matrix:
         browser: [chrome, firefox]
@@ -119,6 +172,37 @@ jobs:
         pip install selenium
         pip install -r requirements.txt
         
+    - name: Show resolved version environment variables
+      run: |
+        echo "YOLO_VERSION=${YOLO_VERSION}"
+        echo "YOLO_IMG_TAG=${YOLO_IMG_TAG}"
+        echo "OLLAMA_VERSION=${OLLAMA_VERSION}"
+        echo "OLLAMA_UI_IMG_TAG=${OLLAMA_UI_IMG_TAG}"
+        echo "POSTGRES_VERSION=${POSTGRES_VERSION}"
+        echo "Matrix browser=${{ matrix.browser }}"
+        echo "Resolution=${{ matrix.resolution.width }}x${{ matrix.resolution.height }}"
+
+    - name: Pre-create Allure environment.properties
+      run: |
+        mkdir -p allure-results
+        cat > allure-results/environment.properties <<EOF
+        Test.Framework=Selenium+Pytest
+        CI.Platform=GitHub Actions
+        Test.Types=UI Automation
+        Browser=${BROWSER}
+        Resolution=${SCREEN_WIDTH}x${SCREEN_HEIGHT}
+        Environment=${ENVIRONMENT}
+        Target.URL=${OLLAMA_URL}
+        Ollama.Version=${OLLAMA_VERSION}
+        Ollama.Image=${OLLAMA_UI_IMG_TAG}
+        YOLO.Version=${YOLO_VERSION}
+        YOLO.Image=${YOLO_IMG_TAG}
+        Postgres.Version=${POSTGRES_VERSION}
+        Git.Commit=${GITHUB_SHA}
+        Git.Ref=${GITHUB_REF}
+        EOF
+        echo "Created allure-results/environment.properties:"; cat allure-results/environment.properties
+
     - name: Install Chrome and ChromeDriver
       if: matrix.browser == 'chrome'
       run: |
@@ -154,6 +238,11 @@ jobs:
         OLLAMA_URL: http://${{ secrets.HOST }}:3000
         TEST_NAME: ${{ matrix.browser }}-${{ matrix.resolution.name }}
         ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
+        YOLO_VERSION: ${{ env.YOLO_VERSION }}
+        YOLO_IMG_TAG: ${{ env.YOLO_IMG_TAG }}
+        OLLAMA_VERSION: ${{ env.OLLAMA_VERSION }}
+        OLLAMA_UI_IMG_TAG: ${{ env.OLLAMA_UI_IMG_TAG }}
+        POSTGRES_VERSION: ${{ env.POSTGRES_VERSION }}
       run: |
         mkdir -p allure-results
         # Run your tests here with unique result directory
