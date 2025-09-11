@@ -79,6 +79,9 @@ jobs:
           
                     # Keep original .env but add IMAGE_TAG
                     echo "OLLAMA_UI_IMG_TAG=${{ env.IMAGE_TAG }}" >> .env
+
+                    # Keep original .env but add EC2_HOST
+                    echo "EC2_HOST=${{ secrets.HOST }}" >> .env
           
                     docker compose up -d
                     
@@ -204,4 +207,3 @@ jobs:
           github_token: ${{ secrets.UI_TESTING_GITHUB_TOKEN }}
           publish_dir: allure-history
 
-          
