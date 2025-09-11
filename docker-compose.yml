@@ -15,7 +15,7 @@ services:
       - "5432:5432"
 
   yolo:
-    image: ${YOLO_IMAGE}
+    image: rabeeafaraj/${YOLO_IMAGE}:${YOLO_IMG_TAG}
     container_name: yolo_service
     restart: always
     depends_on:
@@ -28,15 +28,17 @@ services:
       - "${YOLO_PORT}:8080"
 
   ollama-ui:
-    image: ${OLLAMA_UI_IMAGE}
+    image: rabeeafaraj/${OLLAMA_UI_IMAGE}:${OLLAMA_UI_IMG_TAG}
     container_name: ollama_ui
     restart: always
     depends_on:
       - yolo
     environment:
-      AWS_REGION: eu-west-1
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      AWS_REGION: ${AWS_REGION}
       YOLO_SERVICE: yolo:${YOLO_PORT}
       YOLO_SERVICE_EC2: http://${EC2_HOST}:${YOLO_PORT}
+      AWS_SDK_LOAD_CONFIG: 1
     ports:
       - "${OLLAMA_UI_PORT}:3000"
 
