@@ -1,0 +1,2 @@
+WARNING  selenium.webdriver.common.selenium_manager:selenium_manager.py:137 Error sending stats to Plausible: error sending request for url (https://plausible.io/api/event)
+WARNING  urllib3.connectionpool:connectionpool.py:868 Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='localhost', port=40889): Read timed out. (read timeout=120)")': /session/b829401481ebe1fb0ec11c9c9fcedb66
