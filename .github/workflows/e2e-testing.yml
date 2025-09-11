@@ -1,6 +1,5 @@
 name: Simple Deploy to EC2
 
-
 on:
   pull_request:
     branches:
